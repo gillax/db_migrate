@@ -83,3 +83,39 @@ ALTER TABLE users
 ADD COLUMN enabled TINYINT NOT NULL DEFAULT 1;
 ```
 
+
+### マルチスキーマ対応
+DB毎にマイグレーションファイルの設置場所と `gradle.properties` 内のDB接続情報を設定することで
+flywayの実行を切り替える。
+
+e.g. DB1とDB2のマイグレーションを管理する
+
+1. `gradle.properties` にDB1とDB2の設定を記載する
+
+```gradle.properties
+# DB1
+flyway.test1.url=jdbc:h2:file:./test1
+flyway.test1.uesr=sa
+flyway.test1.password=
+flyway.test1.locations=filesystem:db/test1/migrate
+
+# DB2
+flyway.test2.url=jdbc:h2:file:./test2
+flyway.test2.uesr=sa
+flyway.test2.password=
+flyway.test2.locations=filesystem:db/test2/migrate
+```
+
+1. locationsで指定したパスにマイグレーションファイルを作成
+
+```
+$ ./gradlew flywayNew -Pdesc="Create new migration for DB1" -Penv="test1"
+```
+
+`-Penv="xxx"` で環境をスイッチする
+
+1. migrate
+
+```
+$ ./gradlew flywayMigrate -Penv="test1"
+```

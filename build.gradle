@@ -26,11 +26,11 @@ task flywayNew(
 	def prefix = project.ext.has('flyway.sqlMigrationPrefix') ? project.ext['flyway.sqlMigrationPrefix'] : ''
 	def separator = project.ext.has('flyway.sqlMigrationSeparator') ? project.ext['flyway.sqlMigrationSeparator'] : '_'
 	def suffix = project.ext.has('flyway.sqlMigrationSuffix') ? project.ext['flyway.sqlMigrationSuffix'] : '.sql'
-	def loc = project.ext.has('flyway.locations') ? project.ext['flyway.locations'] : 'filesystem:db/migrate' // db/migrate
 
   doLast {
     def now = new Date();
     def dt = now.format(time_format_file, TimeZone.getTimeZone('UTC'))
+		def loc = project.ext.has('flyway.locations') ? project.ext['flyway.locations'] : 'filesystem:db/migrate' // db/migrate
 
 		// description
 		def description = "description_here"
@@ -58,6 +58,32 @@ task flywayNew(
     println "\033[032m" + "created a migration file!"
     println "     => ${f.path}\033[0m"
   }
+}
+
+task setEnv << {
+  def _env = ""
+  if (project.ext.has('env')) {
+    _env = project.ext['env'] + '.'
+  }
+  doSet("url", _env)
+  doSet("driver", _env)
+  doSet("user", _env)
+  doSet("password", _env)
+  doSet("locations", _env)
+}
+
+flywayMigrate.dependsOn setEnv
+flywayClean.dependsOn setEnv
+flywayInfo.dependsOn setEnv
+flywayValidate.dependsOn setEnv
+flywayBaseline.dependsOn setEnv
+flywayRepair.dependsOn setEnv
+flywayNew.dependsOn setEnv
+
+def doSet(prop, env) {
+  def val = project.ext.has("flyway.${env}${prop}") ? project.ext["flyway.${env}${prop}"] : (project.ext.has("flyway.${prop}") ? project.ext["flyway.${prop}"] : '')
+  //println "${prop}=${val}"
+  project.ext["flyway.${prop}"] = val
 }
 
 
