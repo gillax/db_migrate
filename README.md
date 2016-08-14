@@ -30,7 +30,7 @@ gradle タスクは以下のとおり。
 |flywayClean|Drops all objects in the configured schemas|
 |flywayInfo|Prints the details and status information about all the migrations|
 |flywayValidate|Validates the applied migrations against the ones available on the classpath|
-|flywayInit|Creates and initializes the metadata table (existing database)|
+|flywayBaseline|Baselines an existing database, excluding all migrations up to and including baselineVersion|
 |flywayRepair|Repairs the metadata table|
 
 flywayNewはオプション `desc` を引数にとり、マイグレーションファイルの要約を渡すことができる。
