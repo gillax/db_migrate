@@ -1,0 +1,67 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.h2database:h2:1.4.191'
+	}
+}
+
+plugins {
+	id "org.flywaydb.flyway" version "4.0.3"
+}
+
+
+import org.flywaydb.core.internal.util.Location
+
+
+task flywayNew(
+	group: 'Flyway',
+	description: 'Create a migration template file') {
+
+	def time_format_file = 'yyyyMMddHHmmss'
+	def time_format = 'yyyy-MM-dd HH:mm:ss'
+
+	// file format is 'db/migrate/yyyyMMddhhmmss__description.sql'
+	def prefix = project.ext.has('flyway.sqlMigrationPrefix') ? project.ext['flyway.sqlMigrationPrefix'] : ''
+	def separator = project.ext.has('flyway.sqlMigrationSeparator') ? project.ext['flyway.sqlMigrationSeparator'] : '_'
+	def suffix = project.ext.has('flyway.sqlMigrationSuffix') ? project.ext['flyway.sqlMigrationSuffix'] : '.sql'
+	def loc = project.ext.has('flyway.locations') ? project.ext['flyway.locations'] : 'filesystem:db/migrate' // db/migrate
+
+  doLast {
+    def now = new Date();
+    def dt = now.format(time_format_file, TimeZone.getTimeZone('UTC'))
+
+		// description
+		def description = "description_here"
+    if (project.ext.has('desc')) {
+      def _desc = project.ext['desc']
+      description = _desc.replaceAll(/\s|\u3000/,'_').toLowerCase()
+    }
+
+    // check path
+    def Location location = new Location(loc)
+    def path = location.getPath()
+		new File(path).mkdirs()
+
+		// create file
+    def f = new File(path + "/${prefix}${dt}${separator}${description}${suffix}")
+
+    f.withWriter {
+      it.writeLine("/*")
+      it.writeLine("created on ${now.format(time_format, TimeZone.getTimeZone('UTC'))} UTC.")
+      it.writeLine("${description}")
+      it.writeLine("*/")
+    }
+    f.createNewFile()
+
+    println "\033[032m" + "created a migration file!"
+    println "     => ${f.path}\033[0m"
+  }
+}
+
+
+// wrapper
+task wrapper(type: Wrapper) {
+	gradleVersion = "${gradleVersion}"
+}
